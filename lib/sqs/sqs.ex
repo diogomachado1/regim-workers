@@ -12,7 +12,14 @@ defmodule Sqs.Sqs do
   def sendMessage(queueName, message) do
     jsonMessage = message |> Poison.encode!
     queueName |> getQueue
-    ExAws.SQS.send_message("queue/#{queueName}", jsonMessage) |>ExAws.request()
+    ExAws.SQS.send_message(queueName |> getQueue, jsonMessage) |>ExAws.request()
     # |>
+    #Sqs.Sqs.sendMessage("test.fifo",%{test: 23})
+  end
+
+  def sendMultMessage(number) do
+    for n <- 1..number do
+      sendMessage("test.fifo", %{test: n})
+    end
   end
 end
