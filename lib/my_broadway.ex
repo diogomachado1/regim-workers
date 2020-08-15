@@ -9,7 +9,7 @@ defmodule MyBroadway do
       producer: [
         module: {
           BroadwayRabbitMQ.Producer,
-          queue: "test",
+          queue: "import-product",
           qos: [
             prefetch_count: 50,
           ],
@@ -17,9 +17,9 @@ defmodule MyBroadway do
             host: "localhost",
             username: "guest",
             password: "guest"
-          ]
+          ],
         },
-        concurrency: 1,
+        concurrency: 20,
       ],
       processors: [
         default: [
@@ -38,13 +38,30 @@ defmodule MyBroadway do
 
   @impl true
   def handle_message(_, %Message{data: data} = message, _) do
+    body = Poison.decode!(data)
+    token = Token.generate_and_sign!(%{"id"=> body["userId"]})
+    if Map.has_key?(body["payload"], "id") do
+      id = body["payload"]["id"]
+      response = Entity.Product.get(id,token)
+      if response.status_code !== 200 do
+        Entity.Product.create(body["payload"],token)
+      else
+        get_body = response.body |> Poison.decode!
+        hasChange = Entity.Product.verifyChange(get_body, body["payload"])
+        "#{id}, #{hasChange}" |> IO.puts
+        if hasChange do
+          Entity.Product.update(id, body["payload"],token)
+        end
+      end
+    else
+      Entity.Product.create(body["payload"],token)
+    end
     message
   end
 
   @impl true
   def handle_batch(_, messages, _, _) do
-    list = messages |> Enum.map(fn e -> e.data end)
-    IO.inspect(list, label: "Got batch of finished jobs from processors, sending ACKs to SQS as a batch.")
+    messages |> Enum.map(fn e -> e.data end)
     messages
   end
 

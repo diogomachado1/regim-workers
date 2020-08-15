@@ -27,8 +27,12 @@ defmodule ImportMassive.MixProject do
     [
       {:ex_aws, "~> 2.0"},
       {:ex_aws_sqs, "~> 3.2"},
-      {:poison, "~> 3.0"},
+      {:poison, "~> 4.0"},
+      {:httpoison, "~> 1.6"},
       {:sweet_xml, "~> 0.6"},
+      {:joken, "~> 2.2"},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"},
       {:broadway_rabbitmq, "~> 0.6.1"},
       {:hackney, "~> 1.9"},
       {:jason, "~> 1.2"},
