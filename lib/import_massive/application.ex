@@ -7,7 +7,9 @@ defmodule ImportMassive.Application do
 
   def start(_type, _args) do
     children = [
-      {MyBroadway, []}
+      {Worker.ImportProduct, []},
+      {Worker.ExportProducts, []},
+      ImportMassive.Repo
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

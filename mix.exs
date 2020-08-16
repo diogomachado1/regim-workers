@@ -36,6 +36,7 @@ defmodule ImportMassive.MixProject do
       {:broadway_rabbitmq, "~> 0.6.1"},
       {:hackney, "~> 1.9"},
       {:jason, "~> 1.2"},
+      {:elixlsx, "~> 0.4.2"},
       {:remix, "~> 0.0.1", only: :dev},
       {:amqp, "~> 1.0"},
       # {:dep_from_hexpm, "~> 0.3.0"},

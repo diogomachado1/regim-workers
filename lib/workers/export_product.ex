@@ -1,7 +1,8 @@
-defmodule MyBroadway do
+defmodule Worker.ExportProducts do
   use Broadway
 
   alias Broadway.Message
+
 
   def start_link(_opts) do
     Broadway.start_link(__MODULE__,
@@ -9,7 +10,7 @@ defmodule MyBroadway do
       producer: [
         module: {
           BroadwayRabbitMQ.Producer,
-          queue: "import-product",
+          queue: "export-product",
           qos: [
             prefetch_count: 50,
           ],
@@ -39,23 +40,21 @@ defmodule MyBroadway do
   @impl true
   def handle_message(_, %Message{data: data} = message, _) do
     body = Poison.decode!(data)
+    xlsx = body["userId"]
+    |> Repo.Product.getProductByUserId
+    |> Enum.map(fn (%Repo.Product{id: id,name: name, measure: measure, amount: amount, price: price}) -> %{id: id,name: name, measure: measure, amount: amount, price: price} end)
+    |> Export.Product.render
+    #teste = NimbleCSV.define(NimbleCSV.Spreadsheet, [])
+    #productsCsv = teste.dump_to_iodata(productsMap)
     token = Token.generate_and_sign!(%{"id"=> body["userId"]})
-    if Map.has_key?(body["payload"], "id") do
-      id = body["payload"]["id"]
-      response = Entity.Product.get(id,token)
-      if response.status_code !== 200 do
-        Entity.Product.create(body["payload"],token)
-      else
-        get_body = response.body |> Poison.decode!
-        hasChange = Entity.Product.verifyChange(get_body, body["payload"])
-        "#{id}, #{hasChange}" |> IO.puts
-        if hasChange do
-          Entity.Product.update(id, body["payload"],token)
-        end
-      end
-    else
-      Entity.Product.create(body["payload"],token)
-    end
+    response = HTTPoison.post(
+      "http://localhost:3333/v1/pvt/files",
+      {:multipart, [{"file", xlsx, {"form-data", [name: "file", filename: "Pasta1.xlsx"]}, ["Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]}]},
+      [
+        "Authorization": "Bearer #{token}",
+      ]
+    )
+    response |> IO.inspect
     message
   end
 

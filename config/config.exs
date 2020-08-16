@@ -1,11 +1,5 @@
 use Mix.Config
 
-config :import_massive, Products.Repo,
-  database: "import_massive_repo",
-  username: "user",
-  password: "pass",
-  hostname: "localhost"
-
 config :ex_aws,
   access_key_id: "notValidKey",
   secret_access_key: "notValidSecret",
@@ -30,3 +24,11 @@ config :remix,
   silent: true
 
 config :joken, default_signer: "secret"
+
+config :import_massive, ImportMassive.Repo,
+  database: "regim",
+  username: "postgres",
+  password: "docker",
+  hostname: "localhost"
+
+config :import_massive, ecto_repos: [ImportMassive.Repo]
